@@ -33,6 +33,10 @@ MuxShield muxShield;
 int reference = 700;
 const int chipSelect = 10;
 
+unsigned long start = 0;
+unsigned long stop  = 0;
+unsigned long result = 0;
+
 // Arrays to store analog values after recieving them
 int IO1AnalogVals[16];
 int IO2AnalogVals[16];
@@ -63,6 +67,7 @@ void setup() {
 
 void loop() {
 
+
   // make a string for assembling the data to log:
   String dataString = "";
 
@@ -82,49 +87,53 @@ void loop() {
     }
   }
 
-    for (int analogVals = 0; analogVals < 16; analogVals++) {
-      int sensor = IO2AnalogVals[analogVals];
+  for (int analogVals = 0; analogVals < 16; analogVals++) {
+    int sensor = IO2AnalogVals[analogVals];
+    dataString += String(sensor);
+    if (analogVals < 16) {
+      dataString += ",";
+    }
+  }
+
+  for (int analogVals = 0; analogVals < 16; analogVals++) {
+    int sensor = IO3AnalogVals[analogVals];
+    dataString += String(sensor);
+    if (analogVals < 16) {
+      dataString += ",";
+    }
+  }
+
+  /*
+    // read three sensors and append to the string:
+    for (int analogPin = 0; analogPin < 3; analogPin++) {
+      int sensor = analogRead(analogPin);
       dataString += String(sensor);
-      if (analogVals < 16) {
+      if (analogPin < 2) {
         dataString += ",";
       }
     }
+  */
 
-      for (int analogVals = 0; analogVals < 16; analogVals++) {
-        int sensor = IO3AnalogVals[analogVals];
-        dataString += String(sensor);
-        if (analogVals < 16) {
-          dataString += ",";
-        }
-      }
+  start = micros();
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  File dataFile = SD.open("DataMux3.txt", FILE_WRITE);
+  // if the file is available, write to it:
+  if (dataFile) {
+    dataFile.println(dataString);
+    dataFile.close();
+    // print to the serial port too:
+  //  Serial.println(dataString);
+  }
+  // if the file isn't open, pop up an error:
+  else {
+   // Serial.println("error opening DataMux3.txt");
+  }
 
-        /*
-          // read three sensors and append to the string:
-          for (int analogPin = 0; analogPin < 3; analogPin++) {
-            int sensor = analogRead(analogPin);
-            dataString += String(sensor);
-            if (analogPin < 2) {
-              dataString += ",";
-            }
-          }
-        */
-
-
-        // open the file. note that only one file can be open at a time,
-        // so you have to close this one before opening another.
-        File dataFile = SD.open("DataMux.txt", FILE_WRITE);
-        // if the file is available, write to it:
-        if (dataFile) {
-          dataFile.println(dataString);
-          dataFile.close();
-          // print to the serial port too:
-          Serial.println(dataString);
-        }
-        // if the file isn't open, pop up an error:
-        else {
-          Serial.println("error opening DataMux.txt");
-        }
-      }
+  stop = micros();
+  result = stop - start;
+  Serial.println(result);
+}
 
 
 
